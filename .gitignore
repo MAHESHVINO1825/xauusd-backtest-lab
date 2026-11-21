@@ -8,3 +8,8 @@ agents/wf_*.parquet
 agents/merge_*.parquet
 research/out/feat_*.parquet
 results/
+
+agents/v3*_base.parquet
+agents/merge_results_*.csv
+agents/study_*.json
+agents/models_backup/

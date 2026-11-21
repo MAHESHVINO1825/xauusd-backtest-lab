@@ -29,6 +29,7 @@ from research import strategies as S  # noqa: E402
 from . import features as F  # noqa: E402
 from . import features_ext as FE  # noqa: E402
 from . import study as St  # noqa: E402
+from .ensemble import AvgEnsemble  # noqa: E402
 from . import heads as HD  # noqa: E402
 from . import train as T  # noqa: E402
 
@@ -49,29 +50,33 @@ def main():
             "features_general": cols, "features_s6": HD.S6_FEATS,
             "label": {"tp_atr_h1": T.TP_ATR, "sl_atr_h1": T.SL_ATR, "horizon_min": T.HORIZON_MIN,
                       "spread": T.SPREAD, "slippage": T.SLIP}}
-    # Bear general (v1): 162 features, 1.5R / 8h target
-    m, thr = T.fit_final(X, L, "bear", cols)
-    joblib.dump(m, os.path.join(OUT, "bear_general.joblib"), compress=3)
-    meta["bear_general_thresholds"] = thr
-    print("bear general trained", round(time.time() - t0), "s", flush=True)
-    # Bull general (v2): 188 features (+ext), 2R / 16h target, small GBM, recency half-life 2 years
+    # General agents (v3): 188 features (+ext), small GBM, recency half-life 2 years, 20 years of data
+    #   Bull target: +2R before -1R within 16h      Bear target: +1.5R before -1R within 8h
     E = FE.build_ext(X, m1)
     XE = pd.concat([X, E.drop(columns="decision_time")], axis=1)
-    cols_v2 = cols + [c for c in E.columns if c.startswith("ext_")]
+    cols_v3 = cols + [c for c in E.columns if c.startswith("ext_")]
     arr = D.m1_arrays(T.SPREAD)
-    w, r = T.triple_barrier(L["entry_m1"].values, L["atr_h1"].values, arr["open"], arr["high"], arr["low"], arr["close"],
-                            arr["spread"], arr["minutes"], 1, 2.0, 1.0, 960)
-    ok = np.isfinite(r)
     age = (XE["decision_time"].max() - XE["decision_time"]).dt.days.values / 365
-    mv2 = St.gbm(max_leaf_nodes=15, min_samples_leaf=600, learning_rate=0.05, max_iter=300)
-    mv2.fit(XE.loc[ok, cols_v2], w[ok], sample_weight=0.5 ** (age[ok] / 2))
-    p = mv2.predict_proba(XE.loc[ok, cols_v2])[:, 1]
-    joblib.dump(mv2, os.path.join(OUT, "bull_general.joblib"), compress=3)
-    meta["bull_general_thresholds"] = {str(q): float(np.quantile(p, q)) for q in (0.9, 0.95, 0.99)}
-    meta["features_bull_v2"] = cols_v2
-    meta["bull_label"] = {"tp_atr_h1": 2.0, "sl_atr_h1": 1.0, "horizon_min": 960, "version": "v2"}
-    meta["bear_label"] = {"tp_atr_h1": T.TP_ATR, "sl_atr_h1": T.SL_ATR, "horizon_min": T.HORIZON_MIN, "version": "v1"}
-    print("bull v2 general trained", round(time.time() - t0), "s", flush=True)
+    targets = {"bull": (1, 2.0, 1.0, 960), "bear": (-1, 1.5, 1.0, 480)}
+    for side, (sgn, tp, sl, hz) in targets.items():
+        w, r = T.triple_barrier(L["entry_m1"].values, L["atr_h1"].values, arr["open"], arr["high"], arr["low"],
+                                arr["close"], arr["spread"], arr["minutes"], sgn, tp, sl, hz)
+        ok = np.isfinite(r)
+        idx = np.arange(len(XE))
+        members = []
+        # ensemble = fast model (every 4th point, lr 0.1) + full model (every 2nd point, lr 0.05) — as validated
+        for stride, lr, it in ((4, 0.1, 150), (2, 0.05, 300)):
+            sel = ok & (idx % stride == 0)
+            mm = St.gbm(max_leaf_nodes=15, min_samples_leaf=600, learning_rate=lr, max_iter=it)
+            mm.fit(XE.loc[sel, cols_v3], w[sel], sample_weight=0.5 ** (age[sel] / 2))
+            members.append(mm)
+        m = AvgEnsemble(members)
+        p = m.predict_proba(XE.loc[ok, cols_v3])[:, 1]
+        joblib.dump(m, os.path.join(OUT, f"{side}_general.joblib"), compress=3)
+        meta[f"{side}_general_thresholds"] = {str(q): float(np.quantile(p, q)) for q in (0.9, 0.95, 0.99)}
+        meta[f"{side}_label"] = {"tp_atr_h1": tp, "sl_atr_h1": sl, "horizon_min": hz, "version": "v3-ensemble"}
+        print(f"{side} v3 general trained", round(time.time() - t0), "s", flush=True)
+    meta["features_v3"] = cols_v3
     # S6 head (bull)
     tr = H.run_positions(S.s6_positions("23:00", "00:00"))
     tr["entry_time"] = pd.to_datetime(tr["entry_time"])

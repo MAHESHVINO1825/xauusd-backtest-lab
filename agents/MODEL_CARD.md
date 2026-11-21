@@ -1,4 +1,17 @@
-# Agent Bull & Agent Bear — model card (v2, 2026-11-21)
+# Agent Bull & Agent Bear — model card (v3 ensemble, 2026-11-21)
+
+## v3 (current)
+* Data: XAUUSD M1 **2007-01 → 2026-11 (20 years, UTC)** — 2007–2014 added (2008 and 2013 crashes).
+* Each agent = average of two gradient-boosting models (fast + full), 188 features, recency weighting (2-year half-life).
+* Bull target: +2R before −1R within 16h. Bear target: +1.5R before −1R within 8h.
+* **Merge-ready**: `agents/plugin.py` (`GoldAgents.check("BUY"|"SELL", m1)`), self-calibrating thresholds,
+  modes standard / strict / dual-strict, MT5 helper with automatic broker-time → UTC conversion.
+* Results: see **agents/MERGE_RESULTS.md** (5 bots, 2013–2026) — agents improved every bot; 4 of 5 became profitable.
+* S5/S6 heads were retrained on the 20-year data with the same design (validation numbers below are from the 2015–2026 study).
+
+---
+
+## (previous) v2 summary
 
 ## v2 summary
 | Role | Version | Out-of-sample result (walk-forward 2017–26, costs included) |

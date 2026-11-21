@@ -1,9 +1,9 @@
 {
- "trained_at": "2026-11-21 06:10 UTC",
- "data_first": "2015-01-02 07:00:00",
+ "trained_at": "2026-11-21 08:29 UTC",
+ "data_first": "2007-01-02 06:01:00",
  "data_last": "2026-11-15 23:59:00",
- "data_rows": 4172575,
- "data_hash": "20075a2846467fee74e5b98c2c43f0d2",
+ "data_rows": 6724732,
+ "data_hash": "5d7f618db23a61460bb2d13925ef8fee",
  "features_general": [
   "cdl_M15_body",
   "cdl_M15_upwick",
@@ -193,17 +193,29 @@
   "spread": 0.2,
   "slippage": 0.05
  },
- "bear_general_thresholds": {
-  "0.9": 0.44185038196675724,
-  "0.95": 0.49861196431138266,
-  "0.99": 0.6068337123917775
- },
  "bull_general_thresholds": {
-  "0.9": 0.39326139149906425,
-  "0.95": 0.4528506553660771,
-  "0.99": 0.5983799590521373
+  "0.9": 0.38105218966210275,
+  "0.95": 0.42973929340689554,
+  "0.99": 0.5559847173521709
  },
- "features_bull_v2": [
+ "bull_label": {
+  "tp_atr_h1": 2.0,
+  "sl_atr_h1": 1.0,
+  "horizon_min": 960,
+  "version": "v3-ensemble"
+ },
+ "bear_general_thresholds": {
+  "0.9": 0.4073121924707344,
+  "0.95": 0.4487501506046746,
+  "0.99": 0.5503524917446205
+ },
+ "bear_label": {
+  "tp_atr_h1": 1.5,
+  "sl_atr_h1": 1.0,
+  "horizon_min": 480,
+  "version": "v3-ensemble"
+ },
+ "features_v3": [
   "cdl_M15_body",
   "cdl_M15_upwick",
   "cdl_M15_lowick",
@@ -393,18 +405,6 @@
   "ext_nfp_day",
   "ext_nfp_minutes"
  ],
- "bull_label": {
-  "tp_atr_h1": 2.0,
-  "sl_atr_h1": 1.0,
-  "horizon_min": 960,
-  "version": "v2"
- },
- "bear_label": {
-  "tp_atr_h1": 1.5,
-  "sl_atr_h1": 1.0,
-  "horizon_min": 480,
-  "version": "v1"
- },
- "s6_threshold": 0.4816233238621648,
- "s5_threshold": 0.513123567008501
+ "s6_threshold": 0.46602679607503245,
+ "s5_threshold": 0.49453608309385577
 }

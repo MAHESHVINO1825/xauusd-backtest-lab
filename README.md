@@ -12,11 +12,11 @@ Double-click **`run_backtest_lab.bat`** (first launch installs packages, 2–4 m
 | `app.py`, `core/` | Dashboard + combination search: 21 indicators, M5–H4, scalping/swing, $500–2000, 9 validation gates |
 | `research/` | Hypothesis tests (S1–S7), walk-forward ML filters, pre-registration log, **FINDINGS.md** |
 | `agents/` | **Agent Bull / Agent Bear**: 162-feature library, training, saved models, S5/S6 heads — see `agents/MODEL_CARD.md` |
-| `data/` | XAUUSD M1 2015-01 → 2026-11, **UTC** |
+| `data/` | XAUUSD M1 2007-01 → 2026-11, **UTC** (20 years) |
 | `tests/` | 12 tests: engine maths, no look-ahead, agents, live-window consistency |
 
 ## Data (UTC)
-* 2015–2024: XAU/USD 1-minute archive (GitHub `parshant65-lang`). **Its timestamps are broker server time
+* 2007–2024: XAU/USD 1-minute archive (GitHub `parshant65-lang`). **Its timestamps are broker server time
   (New York + 7h), not UTC** — converted here and verified against Dukascopy ticks (offset 0, corr 0.97–0.99).
 * 2025–2026: Dukascopy tick data (GitHub `Touhid-HZ/xauusd-tick-data-*`) → M1 bid bars + real spread.
 * `spread_hour_shape.csv`, `spread_after_reopen.csv`: measured spread profiles (rollover / 18:00 NY reopen widening).
@@ -35,7 +35,18 @@ Both are small, regime-dependent edges (strongest 2023–26). **Forward-test on 
 **Agent Bull v2** also trades on its own: top-5% signals, stop 1×ATR(H1), target 2×ATR, max 16h → PF 1.28 out-of-sample.
 **Agent Bear** sniper mode (top-5% + daily downtrend) → PF 1.36 but only ~10 trades/year.
 
-## Use the agents from a bot
+## Merge the agents into ANY bot (v3)
+```python
+from agents.plugin import GoldAgents
+ga = GoldAgents(mode="strict")            # "dual-strict" for reversal / scalping bots
+verdict = ga.check("BUY", m1_utc)         # or GoldAgents.m1_from_mt5(mt5, "XAUUSD")
+if verdict["approve"]: place_order()
+```
+Backtest 2013–2026 on 5 different bots: the agents improved all of them; Donchian breakout went from −22 R to
+**+89 R (R-PF 1.40, 12/14 years)**, MACD −172 R → +48 R, EMA cross −81 R → +36 R, RSI −577 R → +29 R.
+Full tables: `agents/MERGE_RESULTS.md`. Example: `examples/merge_into_any_bot.py`.
+
+## Use the agents from a bot (lower level)
 ```python
 from agents.agent import BullAgent, BearAgent
 bull, bear = BullAgent(), BearAgent()

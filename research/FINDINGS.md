@@ -64,3 +64,10 @@ Bull v2 (188 features, small GBM, recency 2y, target 2R/16h): standalone PF 1.01
 Bear: no v2 change helped standalone; best = v1 + daily-downtrend gate, PF 1.36 on 99 trades. Heads unchanged (v1 best).
 Candlestick patterns add no measurable value. Biggest lever = the prediction target (longer, 2:1).
 Next data to add (needs laptop / MT5 export): EURUSD or DXY, US 10y yield, S&P 500, economic calendar.
+
+## 2026-11-21 — Round 5: 20-year data, v3 ensemble agents, merge-ready plugin
+Data extended to 2007–2026 (2007–14 broker time converted to UTC week by week, anchored on the 17:00 NY daily break).
+Agents v3 = ensemble (fast + full GBM), 188 features, recency 2y; walk-forward 2012–2026.
+Merge backtest (5 bots, 2013–26, self-calibrating plugin policy): agents improved every bot; best modes →
+Donchian +89R (R-PF 1.40, 12/14 yrs), MACD +48R, EMA +36R, RSI +29R, Supertrend −5R (≈ breakeven). Details agents/MERGE_RESULTS.md.
+Standalone: Bull top-2% +82R (11/15 yrs); Bear sniper +137R (R-PF 1.19, 10/15 yrs, ~87 trades/yr).

@@ -39,11 +39,13 @@ class _Agent:
         with open(os.path.join(models_dir, "meta.json")) as f:
             self.meta = json.load(f)
         self.general = joblib.load(os.path.join(models_dir, f"{self.side}_general.joblib"))
-        self.cols = self.meta["features_general"]
+        self.cols = self.meta["features_v3"]
         self.thr = self.meta[f"{self.side}_general_thresholds"]
 
     def features(self, m1: pd.DataFrame) -> pd.DataFrame:
-        return F.build(m1)
+        X = F.build(m1)
+        E = FE.build_ext(X, m1)
+        return pd.concat([X, E.drop(columns="decision_time")], axis=1)
 
     def score(self, m1: pd.DataFrame, X: pd.DataFrame | None = None) -> dict:
         """Probability that a trade opened NOW in this agent's direction hits its target before its stop.
@@ -69,13 +71,7 @@ class BullAgent(_Agent):
 
     def __init__(self, models_dir: str = MODELS):
         super().__init__(models_dir)
-        self.cols = self.meta["features_bull_v2"]
         self.s6 = joblib.load(os.path.join(models_dir, "bull_s6_head.joblib"))
-
-    def features(self, m1: pd.DataFrame) -> pd.DataFrame:
-        X = F.build(m1)
-        E = FE.build_ext(X, m1)
-        return pd.concat([X, E.drop(columns="decision_time")], axis=1)
 
     def approve_s6(self, m1: pd.DataFrame, entry_time) -> dict:
         """Call at the S6 entry (23:00 UTC) with M1 bars up to and including that minute's open."""
@@ -96,7 +92,7 @@ class BearAgent(_Agent):
         """Call at the S5 decision (15:30 UTC, after the 15:15 M15 bar closed), only on D1-downtrend days."""
         X = self.features(m1) if X is None else X
         row = X.iloc[[-1]]
-        p = float(self.s5.predict_proba(row[self.cols])[:, 1][0])
+        p = float(self.s5.predict_proba(row[self.meta["features_general"]])[:, 1][0])
         thr = self.meta["s5_threshold"]
         return {"strategy": "S5", "approve": p >= thr, "prob": round(p, 4), "threshold": round(thr, 4),
                 "decision_time": str(row["decision_time"].iloc[0])}
