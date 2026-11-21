@@ -21,6 +21,7 @@ import numpy as np
 import pandas as pd
 
 from . import features as F
+from . import features_ext as FE
 from . import heads as HD
 
 MODELS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
@@ -45,15 +46,22 @@ class _Agent:
         return F.build(m1)
 
     def score(self, m1: pd.DataFrame, X: pd.DataFrame | None = None) -> dict:
-        """Probability that a trade opened NOW in this agent's direction reaches +1.5 ATR(H1) before -1.0 ATR within 8h."""
+        """Probability that a trade opened NOW in this agent's direction hits its target before its stop.
+        Bull v2: +2.0 x ATR(H1) before -1.0 x ATR within 16h.  Bear v1: +1.5 x ATR(H1) before -1.0 x ATR within 8h.
+        Trade rule validated out-of-sample: act on 'top5' signals, stop = 1 x ATR(H1), target and max hold as above."""
         X = self.features(m1) if X is None else X
         row = X.iloc[[-1]]
         p = float(self.general.predict_proba(row[self.cols])[:, 1][0])
         pats = BULL_PATTERNS if self.side == "bull" else BEAR_PATTERNS
         active = [c for c in pats if c in row and row[c].iloc[0] == 1]
-        return {"agent": self.side, "decision_time": str(row["decision_time"].iloc[0]), "prob": round(p, 4),
-                "top10": p >= self.thr["0.9"], "top5": p >= self.thr["0.95"], "top1": p >= self.thr["0.99"],
-                "patterns": active}
+        out = {"agent": self.side, "decision_time": str(row["decision_time"].iloc[0]), "prob": round(p, 4),
+               "top10": p >= self.thr["0.9"], "top5": p >= self.thr["0.95"], "top1": p >= self.thr["0.99"],
+               "patterns": active, "target": self.meta[f"{self.side}_label"]}
+        if self.side == "bear":
+            # sniper mode: only act in a daily downtrend (validated PF 1.36, ~10 trades / year)
+            out["daily_downtrend"] = bool(row["reg_trend_blend"].iloc[0] < 0)
+            out["sniper_signal"] = bool(out["top5"] and out["daily_downtrend"])
+        return out
 
 
 class BullAgent(_Agent):
@@ -61,7 +69,13 @@ class BullAgent(_Agent):
 
     def __init__(self, models_dir: str = MODELS):
         super().__init__(models_dir)
+        self.cols = self.meta["features_bull_v2"]
         self.s6 = joblib.load(os.path.join(models_dir, "bull_s6_head.joblib"))
+
+    def features(self, m1: pd.DataFrame) -> pd.DataFrame:
+        X = F.build(m1)
+        E = FE.build_ext(X, m1)
+        return pd.concat([X, E.drop(columns="decision_time")], axis=1)
 
     def approve_s6(self, m1: pd.DataFrame, entry_time) -> dict:
         """Call at the S6 entry (23:00 UTC) with M1 bars up to and including that minute's open."""

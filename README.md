@@ -32,6 +32,9 @@ Dashboard split: train 2015–22 · test 2023–24 · holdout 2025–26.
 | **S5** | Short 15:30 → 20:30 UTC on daily-downtrend days | Bear head: PF 1.20 → **1.45**, beats 95% of random filters |
 Both are small, regime-dependent edges (strongest 2023–26). **Forward-test on demo before live money.**
 
+**Agent Bull v2** also trades on its own: top-5% signals, stop 1×ATR(H1), target 2×ATR, max 16h → PF 1.28 out-of-sample.
+**Agent Bear** sniper mode (top-5% + daily downtrend) → PF 1.36 but only ~10 trades/year.
+
 ## Use the agents from a bot
 ```python
 from agents.agent import BullAgent, BearAgent

@@ -1,4 +1,26 @@
-# Agent Bull & Agent Bear — model card
+# Agent Bull & Agent Bear — model card (v2, 2026-11-21)
+
+## v2 summary
+| Role | Version | Out-of-sample result (walk-forward 2017–26, costs included) |
+|---|---|---|
+| **Bull — standalone long signals** | **v2**: 188 features, small GBM, recency half-life 2y, target +2R before −1R within 16h | top-5% signals: 479 trades, **PF 1.28**, +46 R, +$615 @0.01, max DD $187; beats 100% of hour-matched random entries (median PF 0.96); PF>1 in 7/10 years |
+| Bull — S6 filter | v1 head | PF 1.16 → **1.36** |
+| **Bear — standalone "sniper"** | v1 general + only when the daily trend is down | 99 trades, **PF 1.36** (R-PF 1.28), +15 R, 7/10 years positive — few trades, treat as low-confidence |
+| Bear — S5 filter | v1 head | PF 1.20 → **1.45** |
+
+### What the improvement study found (one change at a time, fast walk-forward 2019–26)
+* Candlestick patterns: removing all 42 changed AUC by ±0.0005 — **no measurable value**; kept only for explanations.
+* +26 extra features (efficiency ratio, session VWAP, Asian/London range, reopen gap, streaks, NFP timing, month-turn): small gain.
+* Smaller / more regularised models beat bigger ones (overfitting is the main enemy).
+* Recency weighting (2-year half-life) helped both agents' ranking.
+* **The target was the biggest lever for Bull:** +2R within 16h raised top-5% R/trade from +0.06 to +0.20 (7/8 years).
+  Short targets (1R in 4h, 2R in 8h) score higher AUC but lose after costs.
+* Bear: longer targets and the v2 changes did NOT help standalone shorting (gold's long uptrend); v1 + downtrend gate is best.
+* Heads: recency weighting, extra features and stacking the Bull v2 score did not improve the S5/S6 heads — v1 heads kept.
+* Not yet tested (needs data the cloud workspace cannot download): US dollar (EURUSD / DXY), US yields, S&P 500, real news calendar.
+
+---
+
 
 Built 2026-11-21 on XAUUSD M1 data 2015-01-02 → 2026-11-15 (UTC, corrected — see research/FINDINGS.md).
 

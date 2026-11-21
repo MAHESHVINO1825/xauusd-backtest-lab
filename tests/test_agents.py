@@ -4,6 +4,7 @@ import pandas as pd
 import pytest
 
 from agents import features as F
+from agents import features_ext as FE
 from agents.agent import BearAgent, BullAgent
 from core import data as D
 
@@ -23,13 +24,26 @@ def test_features_have_no_lookahead(m1):
         assert np.allclose(j[c].fillna(-9).values, j[c + "_c"].fillna(-9).values, atol=1e-9), c
 
 
+def test_ext_features_have_no_lookahead(m1):
+    part = m1[(m1.time >= "2023-01-01") & (m1.time < "2024-03-01")]
+    X = F.build(part)
+    a = FE.build_ext(X, part)
+    cut = part[part.time < "2024-02-01"]
+    b = FE.build_ext(X[X.decision_time < "2024-02-01"], cut)
+    j = a.merge(b, on="decision_time", suffixes=("", "_c"))
+    j = j[j.decision_time < "2024-01-28"]
+    for c in a.columns[1:]:
+        assert np.allclose(j[c].fillna(-9).values, j[c + "_c"].fillna(-9).values, atol=1e-9), c
+
+
 def test_agents_load_and_score(m1):
     recent = m1[m1.time >= m1.time.iloc[-1] - pd.Timedelta(days=420)]
     bull, bear = BullAgent(), BearAgent()
     X = F.build(recent)
     for a in (bull, bear):
-        s = a.score(recent, X)
+        s = a.score(recent)
         assert 0 <= s["prob"] <= 1 and isinstance(s["patterns"], list)
+    assert "sniper_signal" in bear.score(recent, X)
     r = bear.approve_s5(recent, X)
     assert r["approve"] in (True, False)
     t = recent.time.iloc[-1].normalize() - pd.Timedelta(hours=1)   # 23:00 UTC of the previous day
@@ -41,8 +55,8 @@ def test_live_window_matches_full_history(m1):
     """A live bot only has ~14 months of bars; its scores must match the full-history scores closely."""
     bull = BullAgent()
     end = pd.Timestamp("2026-06-01")
-    full = F.build(m1[m1.time < end])
-    live = F.build(m1[(m1.time < end) & (m1.time >= end - pd.Timedelta(days=420))])
+    full = bull.features(m1[m1.time < end])
+    live = bull.features(m1[(m1.time < end) & (m1.time >= end - pd.Timedelta(days=420))])
     a = bull.general.predict_proba(full.iloc[-500:][bull.cols])[:, 1]
     b = bull.general.predict_proba(live.iloc[-500:][bull.cols])[:, 1]
     assert np.median(np.abs(a - b)) < 0.01

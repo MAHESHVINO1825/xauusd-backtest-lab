@@ -58,3 +58,9 @@ Used as generic filters on S5/S6 they did NOT help. Strategy-specific heads did:
 S6 + Bull head (16 context features at entry): PF 1.16 → 1.36 (beats 99% random filters), +$850 2017–26, max DD $94.
 S5 + Bear head (GBM, 162 features): PF 1.20 → 1.45 (beats 95% random filters), 7/9 years positive.
 Details: agents/MODEL_CARD.md.
+
+## 2026-11-21 — Round 4: agent improvement study → v2
+Bull v2 (188 features, small GBM, recency 2y, target 2R/16h): standalone PF 1.01 → **1.28** (479 trades 2017–26, beats 100% random).
+Bear: no v2 change helped standalone; best = v1 + daily-downtrend gate, PF 1.36 on 99 trades. Heads unchanged (v1 best).
+Candlestick patterns add no measurable value. Biggest lever = the prediction target (longer, 2:1).
+Next data to add (needs laptop / MT5 export): EURUSD or DXY, US 10y yield, S&P 500, economic calendar.
