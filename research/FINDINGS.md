@@ -71,3 +71,9 @@ Agents v3 = ensemble (fast + full GBM), 188 features, recency 2y; walk-forward 2
 Merge backtest (5 bots, 2013–26, self-calibrating plugin policy): agents improved every bot; best modes →
 Donchian +89R (R-PF 1.40, 12/14 yrs), MACD +48R, EMA +36R, RSI +29R, Supertrend −5R (≈ breakeven). Details agents/MERGE_RESULTS.md.
 Standalone: Bull top-2% +82R (11/15 yrs); Bear sniper +137R (R-PF 1.19, 10/15 yrs, ~87 trades/yr).
+
+## 2026-11-21 — Round 6: Mahe's running M5 bot + low-timeframe search
+Replicated the user's M5 bot with its own code on 2010–2026: live rule ≈ breakeven over 14 years (−61R, PF 0.98, 6/14 yrs;
+strong only 2024–26). + agents dual-strict → +89R, PF 1.08, 10/14 yrs. Same engine on M30 + agents dual-strict →
+**+170R, PF 1.22, 11/14 yrs, t 4.0**, survives cost 0.30 (PF 1.20). Simple indicator bots on M5/M15 lose even with agents.
+Details: research/userbot/README.md.
