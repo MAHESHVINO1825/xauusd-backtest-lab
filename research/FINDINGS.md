@@ -50,3 +50,11 @@ Model weights: + distance above 200-day MA, − last-hour / session return (buy 
 
 **Verdict:** S6 + ML filter = best candidate so far, but a SMALL, regime-dependent edge (strong 2025–26, ~flat 2017–23).
 Next step is a demo forward test, not more fitting.
+
+## 2026-11-21 — Round 3: Agent Bull / Agent Bear
+General scorers (162 features, triple-barrier labels, walk-forward 2017–26): AUC 0.56–0.65 every year; top-5% signals win
+42–43% vs 27% base; standalone PF 1.01 (bull) / 1.08 (bear) — beat 100% of hour-matched random entries but not costs.
+Used as generic filters on S5/S6 they did NOT help. Strategy-specific heads did:
+S6 + Bull head (16 context features at entry): PF 1.16 → 1.36 (beats 99% random filters), +$850 2017–26, max DD $94.
+S5 + Bear head (GBM, 162 features): PF 1.20 → 1.45 (beats 95% random filters), 7/9 years positive.
+Details: agents/MODEL_CARD.md.
