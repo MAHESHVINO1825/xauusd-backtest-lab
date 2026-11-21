@@ -21,3 +21,17 @@ the bot's model. Agents = v3 ensemble walk-forward scores, self-calibrating 90-d
 
 Live demo (16–20 Nov 2026): account 115820371 +$110 (6 trades), account 5058919823 +$57 (27 trades);
 nearly all profit from sells during a ~$340 fall in gold — consistent with the bot's strong 2024–26 backtest years.
+
+## M30 + Agents upgrade (2026-11-21)
+`patch_m30_agents.py <src_bot.py> <dst.py> <magic_base>` turns the M5 bot into a multi-timeframe bot (default M30)
+with Agent Bull/Bear approval (dual-strict). Separate MAGIC (base+30) and DB per timeframe.
+
+Offline checks on the patched bot:
+- `--mode once` and Time Machine OK on M30.
+- Bot's own walk-forward (no agents), 36 unseen months 2023-12..2026-11: 1,749 trades, PF 1.04, +22R.
+- AgentGate replay 2026-10-05..09: 53 candidate signals, 4 approved, 49 vetoed (agents are selective by design).
+- Yearly backtest 2013-26, M30 + agents dual-strict: +170R, PF 1.22, 11/14 years positive (cost 0.30: PF 1.20).
+
+## M5 scalping verdict
+16 variants (agents + M5 confirmation, tight/wide exits): PF 0.77-1.12, t <= 1.6. More trades = worse.
+No separate M5 scalping engine is recommended. More daily trades -> run several validated engines in parallel.
