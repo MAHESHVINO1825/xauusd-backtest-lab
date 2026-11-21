@@ -35,3 +35,14 @@ Offline checks on the patched bot:
 ## M5 scalping verdict
 16 variants (agents + M5 confirmation, tight/wide exits): PF 0.77-1.12, t <= 1.6. More trades = worse.
 No separate M5 scalping engine is recommended. More daily trades -> run several validated engines in parallel.
+
+## PRO PACK (2026-11-21): two bots, grades, multi-trade, shadow trades, shared dashboard
+`propack/patch_pro.py <bot.py> <out.py> BOT1|BOT2` adds `propack.py` to a bot file.
+- BOT1-INTRADAY: M30 engine (real grades A/B/C) + MACD H1 (dual-strict) + EMA 20/50 H1 (strict)
+- BOT2-SWING: M30 engine (real grade A) + Donchian-20 H4 (strict) + Agent Bull top 2% + Agent Bear sniper
+- Max 4 open, grade slots A4/B2/C1, one engine trade per candle, max 2 new per candle, no hedging, -$140 daily stop, 15/day
+- Every signal stored as a shadow trade (same exits, walked on M1). Weekly Telegram report Saturday 01:00 UTC + CSV.
+- Dashboard: first bot started serves http://<laptop>:8765 (PIN), both bots publish to ~/xau_bots_hub; buttons -> command files.
+  Optional cloudflared quick tunnel for phone access anywhere.
+Offline replay 2026-10-05..14 with fake MT5 (propack/replay.py): Bot1 ~32 shadow signals/day, 24 real trades;
+Bot2 ~31 shadow/day, 11 real trades (Bear sniper 4). Short sample, not evidence of edge.
